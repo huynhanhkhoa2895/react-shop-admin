@@ -31,35 +31,38 @@ export default (props: any) => {
     const getListData = async (newPage: any, limit: any) => {
         const result: any = await callApiGetList(props.menu, { page: newPage, limit: limit })
         const data: any = result.data;
-        if (!isEqual(data.table.columns, columns)) {
-            const renderSelector = (col: any, row: any) => {
-                switch (col.type) {
-                    case "img":
-                        return <ImagePreview src={row[col.name]} />;
-                    default:
-                        return row[col.name]
+        if(data?.table != null){
+            if (!isEqual(data.table.columns, columns)) {
+                const renderSelector = (col: any, row: any) => {
+                    switch (col.type) {
+                        case "img":
+                            return <ImagePreview src={row[col.name]} />;
+                        default:
+                            return row[col.name]
+                    }
                 }
+                let newColumns = data.table.columns.map((val: any) => ({
+                    name: ucfirst(val.label),
+                    cell: (row: any) => renderSelector(val, row),
+                    sortable: val.type === "text",
+                }))
+                newColumns = newColumns.concat(getListAction())
+                setColumn(newColumns);
             }
-            let newColumns = data.table.columns.map((val: any) => ({
-                name: ucfirst(val.label),
-                cell: (row: any) => renderSelector(val, row),
-                sortable: val.type === "text",
-            }))
-            newColumns = newColumns.concat(getListAction())
-            setColumn(newColumns);
+            if (!isEqual(data.table.total, total)) {
+                setTotal(data.table.total)
+            }
+            let newData: any = [];
+            data.table.rows.map((val: any) => {
+                let newVal = {}
+                Object.keys(val).map((key: any) => (
+                    newVal = { ...newVal, ...{ [key]: val[key] } }
+                ))
+                newData.push(newVal)
+            })
+            setData(newData)
         }
-        if (!isEqual(data.table.total, total)) {
-            setTotal(data.table.total)
-        }
-        let newData: any = [];
-        data.table.rows.map((val: any) => {
-            let newVal = {}
-            Object.keys(val).map((key: any) => (
-                newVal = { ...newVal, ...{ [key]: val[key] } }
-            ))
-            newData.push(newVal)
-        })
-        setData(newData)
+
         setPending(false)
     }
     const deleteData = (id : any) => {

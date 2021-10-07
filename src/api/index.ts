@@ -74,7 +74,7 @@ export const checkToken = (data: any, history: any) => {
     }
 }
 const handleError = (err: any) => {
-    if(err.response.status === 401){
+    if(err.response != null && err.response.status === 401){
         localStorage.removeItem("user")
         document.location.href = "/login?expired=true"
     }else{
